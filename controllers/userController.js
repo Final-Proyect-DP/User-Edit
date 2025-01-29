@@ -1,32 +1,46 @@
 const User = require('../models/user');
 const { sendMessage } = require('../producers/kafkaProducer');
-const redisClient = require('../config/redisConfig');
 const logger = require('../config/logger');
-require('dotenv').config();
+const { validateUpdateFields } = require('../utils/validateUser');
+const handleErrors = require('../utils/handleErrors');
 
 const updateUser = async (req, res) => {
   const { id } = req.params;
-  const { username, firstName, lastName, address, phone, semester, parallel, career, description } = req.body;
+  const updateData = {
+    username: req.body.username,
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    address: req.body.address,
+    phone: req.body.phone,
+    semester: req.body.semester,
+    parallel: req.body.parallel,
+    career: req.body.career,
+    description: req.body.description
+  };
 
   try {
-    const updateData = { username, firstName, lastName, address, phone, semester, parallel, career, description };
-    const user = await User.findByIdAndUpdate(id, updateData, { new: true });
+    validateUpdateFields(updateData);
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    );
 
     if (!user) {
-      logger.warn(`User not found: ${id}`);
-      return res.status(404).json({ message: 'User not found' });
+      throw new Error('User not found');
     }
 
     await sendMessage('user.edit', user);
-    res.json({ message: 'Usuario actualizado correctamente' });
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Usuario actualizado correctamente'
+    });
 
   } catch (error) {
-    if (error.code === 11000) {
-      logger.error('Duplicate key error', error);
-      return res.status(400).json({ message: 'El nombre de usuario ya existe' });
-    }
-    logger.error('Error updating user', error);
-    res.status(500).json({ message: error.message });
+    const { status, response } = handleErrors(error, id);
+    return res.status(status).json(response);
   }
 };
 
