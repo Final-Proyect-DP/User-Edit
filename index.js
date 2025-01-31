@@ -7,6 +7,8 @@ const userRoutes = require('./routes/userRoutes');
 const logger = require('./config/logger');
 const userCreateConsumer = require('./consumers/userCreateConsumer'); // Importar el consumidor
 const userDeleteConsumer = require('./consumers/userDeleteConsumer'); // Importar el consumidor
+const authLoginConsumer = require('./consumers/authLoginConsumer'); // Importar el consumidor
+const userLogoutConsumer = require('./consumers/userLogoutConsumer'); // Importar el consumidor
 const connectDB = require('./config/dbConfig'); // Importar la configuración de la base de datos
 
 const app = express();
@@ -50,6 +52,12 @@ connectDB().then(async () => {
       }),
       userDeleteConsumer.run().then(() => {
         logger.info('Consumidor de eliminación iniciado correctamente');
+      }),
+      authLoginConsumer.run().then(() => {
+        logger.info('Consumidor de login iniciado correctamente');
+      }),
+      userLogoutConsumer.run().then(() => {
+        logger.info('Consumidor de logout iniciado correctamente');
       })
     ]);
   } catch (error) {
