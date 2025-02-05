@@ -10,8 +10,8 @@ const run = async () => {
   try {
     await consumer.connect();
     logger.info('Delete Consumer: Kafka consumer connected');
-    await consumer.subscribe({ topic: process.env.KAFKA_TOPIC_DELETE, fromBeginning: true });
-    logger.info(`Delete Consumer: Subscribed to topic: ${process.env.KAFKA_TOPIC_DELETE}`);
+    await consumer.subscribe({ topic: 'user.delete', fromBeginning: true });
+    logger.info('Delete Consumer: Subscribed to topic: user.delete');
 
     await consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
