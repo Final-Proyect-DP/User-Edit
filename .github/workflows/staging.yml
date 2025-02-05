@@ -61,7 +61,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: byvoxel/user-edit
+          images: byvoxel/market4user
           tags: |
             type=raw,value=staging
           
@@ -70,7 +70,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: byvoxel/user-edit:staging
+          tags: byvoxel/market4user:staging
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -94,13 +94,13 @@ jobs:
           timeout: "120s"
           script: |
             set -e
-            echo "Deploying image: byvoxel/user-edit:staging"
-            sudo docker stop user-edit || true
-            sudo docker rm user-edit || true
-            sudo docker pull byvoxel/user-edit:staging
+            echo "Deploying image: byvoxel/market4user:staging"
+            sudo docker stop market4user || true
+            sudo docker rm market4user || true
+            sudo docker pull byvoxel/market4user:staging
             sudo docker run -d \
-              --name user-edit \
+              --name market4user \
               -p 3022:3022 \
               --restart unless-stopped \
-              byvoxel/user-edit:staging
+              byvoxel/market4user:staging
             sudo docker system prune -af --volumes || true
