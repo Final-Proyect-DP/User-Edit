@@ -1,5 +1,7 @@
 const express = require('express');
 const { updateUser } = require('../controllers/userController');
+const { verifyToken } = require('../middlewares/authMiddleware');
+
 const router = express.Router();
 
 /**
@@ -29,8 +31,6 @@ const router = express.Router();
  *             properties:
  *               username:
  *                 type: string
- *               email:
- *                 type: string
  *               firstName:
  *                 type: string
  *               lastName:
@@ -53,6 +53,6 @@ const router = express.Router();
  *       404:
  *         description: User not found
  */
-router.put('/:id', updateUser);
+router.put('/:id', verifyToken, updateUser);
 
 module.exports = router;

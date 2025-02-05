@@ -6,11 +6,6 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  email: {
-    type: String,
-    required: true,
-    unique: true
-  },
   role: {
     type: String,
     default: 'normal'
@@ -51,6 +46,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   }
+}, {
+  timestamps: true
 });
 
 const User = mongoose.models.User || mongoose.model('User', userSchema);
