@@ -16,7 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: delete .env file
+      - name: edit .env file
         env:
           PORT: ${{ secrets.PORT }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
@@ -31,7 +31,7 @@ jobs:
           KAFKA_TOPIC_USER_CREATE: ${{ secrets.KAFKA_TOPIC_USER_CREATE }}
           KAFKA_TOPIC_LOGOUT: ${{ secrets.KAFKA_TOPIC_LOGOUT }}
           KAFKA_TOPIC_LOGIN: ${{ secrets.KAFKA_TOPIC_LOGIN }}
-          KAFKA_TOPIC_DELETE: ${{ secrets.KAFKA_TOPIC_DELETE }}
+          KAFKA_TOPIC_edit: ${{ secrets.KAFKA_TOPIC_DELETE }}
         run: |
           echo "PORT=${PORT}" > .env
           echo "MONGODB_URI=${MONGODB_URI}" >> .env
@@ -61,7 +61,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: byvoxel/user-delete
+          images: byvoxel/user-edit
           tags: |
             type=raw,value=staging
           
@@ -70,7 +70,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: byvoxel/user-delete:staging
+          tags: byvoxel/user-edit:staging
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -94,13 +94,13 @@ jobs:
           timeout: "120s"
           script: |
             set -e
-            echo "Deploying image: byvoxel/user-delete:staging"
-            sudo docker stop user-delete || true
-            sudo docker rm user-delete || true
-            sudo docker pull byvoxel/user-delete:staging
+            echo "Deploying image: byvoxel/user-edit:staging"
+            sudo docker stop user-edit || true
+            sudo docker rm user-edit || true
+            sudo docker pull byvoxel/user-edit:staging
             sudo docker run -d \
-              --name user-delete \
+              --name user-edit \
               -p 3020:3020 \
               --restart unless-stopped \
-              byvoxel/user-delete:staging
+              byvoxel/user-edit:staging
             sudo docker system prune -af --volumes || true
