@@ -19,19 +19,19 @@ const run = async () => {
         try {
           const encryptedMessage = JSON.parse(message.value.toString());
           const decryptedMessage = userService.decryptMessage(encryptedMessage);
-          logger.info('Mensaje descifrado:', decryptedMessage);
+          logger.info('Decrypted message:', decryptedMessage);
 
           const userData = JSON.parse(decryptedMessage);
           const user = new User(userData);
           await user.save();
-          logger.info(`Usuario insertado en la base de datos: ${user._id}`);
+          logger.info(`User inserted into database: ${user._id}`);
         } catch (error) {
-          logger.error('Error al procesar el mensaje de Kafka:', error);
+          logger.error('Error processing Kafka message:', error);
         }
       },
     });
   } catch (error) {
-    logger.error('Create Consumer: Error iniciando el consumidor:', error);
+    logger.error('Create Consumer: Error starting the consumer:', error);
     throw error;
   }
 };

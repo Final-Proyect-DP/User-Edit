@@ -1,10 +1,10 @@
 const logger = require('../config/logger');
 
 const handleErrors = (error, id = '') => {
-  logger.error(`Error en la operación ${id ? `para ID ${id}` : ''}:`, error);
+  logger.error(`Error in operation ${id ? `for ID ${id}` : ''}:`, error);
 
   // Error de campos requeridos
-  if (error.message.includes('Campos requeridos')) {
+  if (error.message.includes('Missing required fields')) {
     return {
       status: 400,
       response: {
@@ -20,7 +20,7 @@ const handleErrors = (error, id = '') => {
       status: 400,
       response: {
         success: false,
-        message: 'El nombre de usuario ya existe'
+        message: 'Username already exists'
       }
     };
   }
@@ -31,7 +31,7 @@ const handleErrors = (error, id = '') => {
       status: 400,
       response: {
         success: false,
-        message: 'Error de validación',
+        message: 'Validation error',
         details: error.message
       }
     };
@@ -43,7 +43,7 @@ const handleErrors = (error, id = '') => {
       status: 404,
       response: {
         success: false,
-        message: 'Usuario no encontrado'
+        message: 'User not found'
       }
     };
   }
@@ -53,7 +53,7 @@ const handleErrors = (error, id = '') => {
     status: 500,
     response: {
       success: false,
-      message: 'Error interno del servidor'
+      message: 'Internal server error'
     }
   };
 };

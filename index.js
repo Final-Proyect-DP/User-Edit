@@ -34,7 +34,7 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
 const corsOptions = {
-  origin: '*',  // Permite todos los orígenes
+  origin: '*', 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
   credentials: true,
@@ -49,29 +49,29 @@ app.use('/users', userRoutes);
 
 connectDB().then(async () => {
   app.listen(port, '0.0.0.0', () => {
-    logger.info(`Servidor corriendo en http://0.0.0.0:${port}`);
+    logger.info(`Server running at http://0.0.0.0:${port}`);
   });
 
-  // Inicializar los consumidores de manera secuencial con manejo de errores
+  // Initialize consumers sequentially with error handling
   try {
-    logger.info('Iniciando consumidores...');
+    logger.info('Starting consumers...');
     await Promise.all([
       userCreateConsumer.run().then(() => {
-        logger.info('Consumidor de creación iniciado correctamente');
+        logger.info('Create consumer started successfully');
       }),
       userDeleteConsumer.run().then(() => {
-        logger.info('Consumidor de eliminación iniciado correctamente');
+        logger.info('Delete consumer started successfully');
       }),
       authLoginConsumer.run().then(() => {
-        logger.info('Consumidor de login iniciado correctamente');
+        logger.info('Login consumer started successfully');
       }),
       userLogoutConsumer.run().then(() => {
-        logger.info('Consumidor de logout iniciado correctamente');
+        logger.info('Logout consumer started successfully');
       })
     ]);
   } catch (error) {
-    logger.error('Error al iniciar los consumidores:', error);
+    logger.error('Error starting consumers:', error);
   }
 }).catch(err => {
-  logger.error('Error al conectar a MongoDB', err);
+  logger.error('Error connecting to MongoDB', err);
 });
