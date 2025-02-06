@@ -4,36 +4,30 @@ const userService = require('../services/userService');
 const redisUtils = require('../utils/redisUtils');
 require('dotenv').config();
 
-const consumer = kafka.consumer({ groupId: 'edit-service-login-group' });
+const consumer = kafka.consumer({ groupId: 'User-Edit-Login-Consumer' });
 
 const run = async () => {
   try {
     await consumer.connect();
-    logger.info('Create Consumer: Kafka consumer connected');
+    
     await consumer.subscribe({ topic: process.env.KAFKA_TOPIC_LOGIN, fromBeginning: true });
-    logger.info(`Create Consumer: Subscribed to topic: ${process.env.KAFKA_TOPIC_LOGIN}`);
+    logger.info(`Login Consumer: Subscribed to topic: ${process.env.KAFKA_TOPIC_LOGIN}`);
 
     await consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
         try {
           const encryptedMessage = JSON.parse(message.value.toString());
           const decryptedMessage = userService.decryptMessage(encryptedMessage);
-          logger.info('Mensaje descifrado:', decryptedMessage);
-
+          
           const { userId, token } = decryptedMessage;
           if (!userId || !token) {
-            throw new Error('Mensaje no contiene userId o token');
+            throw new Error('Incomplete authentication data');
           }
 
-          // Usar redisUtils.setToken en lugar de storeUserSession
           await redisUtils.setToken(userId, token);
-          logger.info(`Token almacenado en Redis para usuario ${userId}`);
-
+          logger.info(`Login successful: ${userId}`);
         } catch (error) {
-          logger.error('Error procesando mensaje:', {
-            error: error.message,
-            stack: error.stack
-          });
+          logger.error('Authentication failed:', error.message);
         }
       },
     });

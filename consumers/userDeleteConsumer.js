@@ -4,37 +4,29 @@ const User = require('../models/user');
 const logger = require('../config/logger');
 require('dotenv').config();
 
-const consumer = kafka.consumer({ groupId: 'edit-service-delete-group' });
+const consumer = kafka.consumer({ groupId: 'User-Edit-Delete-Consumer' });
 
 const run = async () => {
   try {
     await consumer.connect();
-    logger.info('Delete Consumer: Kafka consumer connected');
     await consumer.subscribe({ topic: 'user.delete', fromBeginning: true });
     logger.info('Delete Consumer: Subscribed to topic: user.delete');
 
     await consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
-        console.log('Received message:', message.value.toString());
-        let encryptedMessage;
         try {
-          encryptedMessage = JSON.parse(message.value.toString());
+          const encryptedMessage = JSON.parse(message.value.toString());
+          const decryptedMessage = decryptMessage(encryptedMessage);
+          const { id } = JSON.parse(decryptedMessage);
+          
+          const user = await User.findByIdAndDelete(id);
+          if (!user) {
+            logger.warn(`User not found: ${id}`);
+            return;
+          }
+          logger.info(`User deleted: ${id}`);
         } catch (error) {
-          console.error('Error parsing message as JSON:', error);
-          return;
-        }
-        console.log('Encrypted message:', encryptedMessage);
-        const decryptedMessage = decryptMessage(encryptedMessage);
-        console.log('Decrypted message:', decryptedMessage);
-        const { id } = JSON.parse(decryptedMessage);
-
-        console.log('User ID to delete:', id);
-
-        const user = await User.findByIdAndDelete(id);
-        if (user) {
-          console.log('User deleted successfully:', user.id);
-        } else {
-          console.log('User not found:', id);
+          logger.error('Delete failed:', error);
         }
       }
     });
@@ -43,7 +35,5 @@ const run = async () => {
     throw error;
   }
 };
-
-run().catch(console.error);
 
 module.exports = { run };
