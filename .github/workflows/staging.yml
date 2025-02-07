@@ -1,8 +1,8 @@
 name: Deploy Pull Request to main Environment
 
 on:
-  push:
-    branches: [main]
+  pull_request:
+    branches: [staging]
 
 jobs:
   build_docker_image:
@@ -21,7 +21,7 @@ jobs:
           PORT: ${{ secrets.PORT }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          HOST: ${{ secrets.HOST }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
           ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
@@ -36,7 +36,7 @@ jobs:
           echo "PORT=${PORT}" > .env
           echo "MONGODB_URI=${MONGODB_URI}" >> .env
           echo "REDIS_HOST=${REDIS_HOST}" >> .env
-          echo "REDIS_PORT=${REDIS_PORT}" >> .env
+          echo "HOST=${HOST}" >> .env
           echo "JWT_SECRET=${JWT_SECRET}" >> .env
           echo "ENCRYPTION_KEY=${ENCRYPTION_KEY}" >> .env
           echo "ENCRYPTION_IV=${ENCRYPTION_IV}" >> .env
@@ -61,7 +61,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: byvoxel/market4user
+          images: byvoxel/user-edit
           tags: |
             type=raw,value=staging
           
@@ -70,7 +70,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: byvoxel/market4user:staging
+          tags: byvoxel/user-edit:staging
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -81,7 +81,7 @@ jobs:
     strategy:
       matrix:
         ec2_instance: 
-          - ec2-3-91-76-250.compute-1.amazonaws.com
+          - ec2-52-7-99-128.compute-1.amazonaws.com
 
     steps:
       - name: Deploy Container
@@ -89,18 +89,18 @@ jobs:
         with:
           host: ${{ matrix.ec2_instance }}
           username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY1 }}
           port: 22
           timeout: "120s"
           script: |
             set -e
-            echo "Deploying image: byvoxel/market4user:staging"
-            sudo docker stop market4user || true
-            sudo docker rm market4user || true
-            sudo docker pull byvoxel/market4user:staging
+            echo "Deploying image: byvoxel/user-edit:staging"
+            sudo docker stop user-edit || true
+            sudo docker rm user-edit || true
+            sudo docker pull byvoxel/user-edit:staging
             sudo docker run -d \
-              --name market4user \
+              --name user-edit \
               -p 3022:3022 \
               --restart unless-stopped \
-              byvoxel/market4user:staging
+              byvoxel/user-edit:staging
             sudo docker system prune -af --volumes || true
