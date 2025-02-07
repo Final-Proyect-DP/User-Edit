@@ -2,7 +2,7 @@ name: Deploy Pull Request to main Environment
 
 on:
   pull_request:
-    branches: [staging]
+    branches: [main]
 
 jobs:
   build_docker_image:
