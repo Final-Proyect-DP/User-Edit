@@ -4,14 +4,14 @@ const userService = require('../services/userService');
 const redisUtils = require('../utils/redisUtils');
 require('dotenv').config();
 
-const consumer = kafka.consumer({ groupId: 'edit-service-logout-group' });
+const consumer = kafka.consumer({ groupId: 'User-Edit-Logout-Consumer' });
 
 const run = async () => {
   try {
     await consumer.connect();
-    logger.info('Create Consumer: Kafka consumer connected');
+    logger.info('Logout Consumer: Kafka consumer connected');
     await consumer.subscribe({ topic: process.env.KAFKA_TOPIC_LOGOUT, fromBeginning: true });
-    logger.info(`Create Consumer: Subscribed to topic: ${process.env.KAFKA_TOPIC_LOGOUT}`);
+    logger.info(`Logout Consumer: Subscribed to topic: ${process.env.KAFKA_TOPIC_LOGOUT}`);
 
     await consumer.run({
       eachMessage: async ({ topic, partition, message }) => {

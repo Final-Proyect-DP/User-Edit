@@ -5,14 +5,13 @@ const User = require('../models/user');
 const logger = require('../config/logger');
 require('dotenv').config();
 
-const consumer = kafka.consumer({ groupId: 'edit-service-create-group' });
+const consumer = kafka.consumer({ groupId: 'User-Edit-Create-Consumer' });
 
 const run = async () => {
   try {
     await consumer.connect();
-    logger.info('Create Consumer: Kafka consumer connected');
     await consumer.subscribe({ topic: process.env.KAFKA_TOPIC_USER_CREATE, fromBeginning: true });
-    logger.info(`Create Consumer: Subscribed to topic: ${process.env.KAFKA_TOPIC_USER_CREATE}`);
+    logger.info(`Create Consumer: Connected and subscribed to ${process.env.KAFKA_TOPIC_USER_CREATE}`);
 
     await consumer.run({
       eachMessage: async ({ topic, partition, message }) => {

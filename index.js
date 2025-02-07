@@ -1,77 +1,71 @@
 require('dotenv').config();
 const express = require('express');
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsdoc = require('swagger-jsdoc');
 const cors = require('cors');
-const userRoutes = require('./routes/userRoutes');
+const swaggerUi = require('swagger-ui-express');
 const logger = require('./config/logger');
-const userCreateConsumer = require('./consumers/userCreateConsumer'); // Importar el consumidor
-const userDeleteConsumer = require('./consumers/userDeleteConsumer'); // Importar el consumidor
-const authLoginConsumer = require('./consumers/authLoginConsumer'); // Importar el consumidor
-const userLogoutConsumer = require('./consumers/userLogoutConsumer'); // Importar el consumidor
-const connectDB = require('./config/dbConfig'); // Importar la configuración de la base de datos
+const userRoutes = require('./routes/userRoutes');
+const swaggerDocs = require('./config/swaggerConfig');
+const connectDB = require('./config/dbConfig');
+const userCreateConsumer = require('./consumers/userCreateConsumer');
+const userDeleteConsumer = require('./consumers/userDeleteConsumer');
+const authLoginConsumer = require('./consumers/authLoginConsumer');
+const userLogoutConsumer = require('./consumers/userLogoutConsumer');
 
 const app = express();
 const port = process.env.PORT || 3003;
 
-const swaggerOptions = {
-  swaggerDefinition: {
-    openapi: '3.0.0',
-    info: {
-      title: process.env.API_TITLE,
-      version: process.env.API_VERSION,
-      description: process.env.API_DESCRIPTION
-    },
-    servers: [
-      {
-        url: `http://localhost:${port}`
-      }
-    ]
-  },
-  apis: ['./routes/*.js']
-};
-
-const swaggerDocs = swaggerJsdoc(swaggerOptions);
-
 const corsOptions = {
-  origin: '*', 
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
   credentials: true,
   optionsSuccessStatus: 200
 };
 
-app.use(cors(corsOptions));
-
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-app.use(express.json());
-app.use('/users', userRoutes);
-
-connectDB().then(async () => {
-  app.listen(port, '0.0.0.0', () => {
-    logger.info(`Server running at http://0.0.0.0:${port}`);
-  });
-
-  // Initialize consumers sequentially with error handling
+const startConsumers = async () => {
   try {
-    logger.info('Starting consumers...');
+    logger.info('Starting Kafka consumers...');
     await Promise.all([
-      userCreateConsumer.run().then(() => {
-        logger.info('Create consumer started successfully');
-      }),
-      userDeleteConsumer.run().then(() => {
-        logger.info('Delete consumer started successfully');
-      }),
-      authLoginConsumer.run().then(() => {
-        logger.info('Login consumer started successfully');
-      }),
-      userLogoutConsumer.run().then(() => {
-        logger.info('Logout consumer started successfully');
-      })
+      userCreateConsumer.run(),
+      userDeleteConsumer.run(),
+      authLoginConsumer.run(),
+      userLogoutConsumer.run()
     ]);
+    logger.info('All Kafka consumers started successfully');
   } catch (error) {
-    logger.error('Error starting consumers:', error);
+    logger.error('Error starting Kafka consumers:', error);
+    throw error;
   }
-}).catch(err => {
-  logger.error('Error connecting to MongoDB', err);
-});
+};
+
+const startServer = async () => {
+  try {
+    // Configurar middleware
+    app.use(cors(corsOptions));
+    app.use(express.json());
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+    app.use('/users', userRoutes);
+
+    app.get('/health', (req, res) => {
+      res.status(200).json({ status: 'OK', service: 'user-edit' });
+    });
+    
+
+    // Conectar a la base de datos
+    await connectDB();
+    logger.info('Database connection established');
+
+    // Iniciar consumidores
+    await startConsumers();
+
+    // Iniciar servidor
+    app.listen(port, '0.0.0.0', () => {
+      logger.info(`Server running at http://0.0.0.0:${port}`);
+    });
+  } catch (error) {
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
