@@ -1,8 +1,8 @@
-name: Deploy Pull Request to main Environment
+name: Deploy to staging Environment
 
 on:
   push:
-    branches: [main]
+    branches: [staging]
 
 jobs:
   build_docker_image:
@@ -82,7 +82,7 @@ jobs:
     strategy:
       matrix:
         ec2_instance: 
-          - ec2-52-7-99-128.compute-1.amazonaws.com
+          - ec2-100-27-127-35.compute-1.amazonaws.com
 
     steps:
       - name: Deploy Container
