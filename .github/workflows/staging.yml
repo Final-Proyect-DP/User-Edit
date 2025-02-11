@@ -82,7 +82,7 @@ jobs:
     strategy:
       matrix:
         ec2_instance: 
-          - ec2-100-27-127-35.compute-1.amazonaws.com
+          - ec2-52-7-99-128.compute-1.amazonaws.com
 
     steps:
       - name: Deploy Container
@@ -90,7 +90,7 @@ jobs:
         with:
           host: ${{ matrix.ec2_instance }}
           username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY1 }}
           port: 22
           timeout: "120s"
           script: |
